@@ -15,4 +15,11 @@ export default defineComponent({
 })
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.book-view {
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  background-color: #f5f6ff;
+}
+</style>

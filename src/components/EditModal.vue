@@ -1,7 +1,10 @@
 <template>
-  <div v-if="visible" class="modal">
-    <div class="modal-content">
-      <h3>Edit Book</h3>
+  <div v-if="visible" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Edit Book</h3>
+        <button class="close-button" @click="$emit('close')">&times;</button>
+      </div>
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
           <label for="edit-title">Title</label>
@@ -20,32 +23,37 @@
           <input type="number" id="edit-year" v-model="book.year" required />
         </div>
         <button type="submit" class="update-button">Update Book</button>
-        <button @click="$emit('close')" class="cancel-button">Cancel</button>
       </form>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import type { Book } from './BookLibrary.vue';
+import {defineComponent, PropType} from 'vue';
+import {Book} from "@/shared/common-types";
 
 export default defineComponent({
   name: 'EditModal',
   props: {
-    visible: { type: Boolean, required: true },
-    book: { type: Object as () => Book, required: true }
+    visible: {
+      type: Boolean,
+      required: true
+    },
+    book: {
+      type: Object as PropType<Book>,
+      required: true
+    }
   },
   methods: {
-    handleSubmit() {
+    handleSubmit(): void {
       this.$emit('update-book', this.book);
     }
   }
 });
 </script>
 
-<style scoped>
-.modal {
+<style scoped lang="scss">
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -55,21 +63,58 @@ export default defineComponent({
   display: flex;
   justify-content: center;
   align-items: center;
-}
 
-.modal-content {
-  background-color: white;
-  padding: 20px;
-  border-radius: 5px;
-  width: 300px;
-}
+  .modal {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    box-sizing: border-box;
 
-.form-group {
-  margin-bottom: 10px;
-}
+    &-header {
+      display: flex;
+      justify-content: space-between;
+      padding-bottom: 15px;
 
-.update-button,
-.cancel-button {
-  margin-right: 10px;
+      .close-button {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        border: none;
+        font-size: 32px;
+        cursor: pointer;
+        color: #000;
+        font-weight: bold;
+        background: transparent;
+      }
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+      box-sizing: border-box;
+
+      input[type="text"], input[type="number"], textarea {
+        width: 100%;
+        padding: 0.5rem;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        margin-bottom: 1rem;
+        box-sizing: border-box;
+      }
+    }
+  }
+
+  button.update-button {
+    border: 2px solid #5d5fef;
+    color: #5d5fef;
+    background: transparent;
+    padding: 0.75rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
 }
 </style>
+

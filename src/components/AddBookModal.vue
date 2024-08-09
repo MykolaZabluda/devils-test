@@ -1,26 +1,33 @@
 <template>
   <div v-if="visible" class="modal-overlay">
     <div class="modal">
-      <h2>Add a New Book</h2>
+      <div class="modal-header">
+        <h2>Add a New Book</h2>
+        <button class="close-button" @click="$emit('close')">&times;</button>
+      </div>
       <form @submit.prevent="handleAddBook">
+
         <div class="form-group">
-          <label for="title">Title</label>
-          <input type="text" id="title" v-model="book.title" required />
+          <input type="text" id="title" class="form-control" placeholder="" v-model="book.title" required>
+          <label for="title" class="form-label">Title</label>
         </div>
+
         <div class="form-group">
-          <label for="author">Author</label>
-          <input type="text" id="author" v-model="book.author" required />
+          <input type="text" id="author" class="form-control" placeholder="" v-model="book.author" required>
+          <label for="author" class="form-label">Author</label>
         </div>
+
         <div class="form-group">
-          <label for="description">Description</label>
-          <textarea id="description" v-model="book.description" required></textarea>
+          <textarea id="description" class="form-control" placeholder="" v-model="book.description" required></textarea>
+          <label for="description" class="form-label">Description</label>
         </div>
+
         <div class="form-group">
-          <label for="year">Year of Publication</label>
-          <input type="number" id="year" v-model="book.year" required />
+          <input type="number" id="year" class="form-control" placeholder="" v-model="book.year" required>
+          <label for="year" class="form-label">Year of Publication</label>
         </div>
+
         <button type="submit" class="add-button">Add Book</button>
-        <button type="button" @click="$emit('close')" class="cancel-button">Cancel</button>
       </form>
     </div>
   </div>
@@ -28,13 +35,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-
-interface Book {
-  title: string;
-  author: string;
-  description: string;
-  year: number | null;
-}
+import {Book} from "@/shared/common-types";
+import {setDefaultBookData} from "@/shared/common-helpers";
 
 export default defineComponent({
   name: 'AddBookModal',
@@ -55,9 +57,9 @@ export default defineComponent({
     };
   },
   methods: {
-    handleAddBook() {
+    handleAddBook(): void {
       this.$emit('add-book', { ...this.book });
-      this.book = { title: '', author: '', description: '', year: null };
+      this.book = setDefaultBookData();
       this.$emit('close');
     }
   }
@@ -75,44 +77,83 @@ export default defineComponent({
   display: flex;
   justify-content: center;
   align-items: center;
-}
 
-.modal {
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  width: 400px;
-  max-width: 100%;
-}
+  .modal {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    box-sizing: border-box;
 
-.form-group {
-  margin-bottom: 1rem;
-}
+    &-header {
+      display: flex;
+      justify-content: space-between;
+      padding-bottom: 15px;
 
-input[type="text"], input[type="number"], textarea {
-  width: 100%;
-  padding: 0.5rem;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  margin-bottom: 1rem;
-}
+      .close-button {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        border: none;
+        font-size: 32px;
+        cursor: pointer;
+        color: #000;
+        font-weight: bold;
+        background: transparent;
+      }
+    }
 
-button.add-button {
-  background-color: #28a745;
-  color: #fff;
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
+    .form-group {
+      position: relative;
+      margin-bottom: 20px;
+      box-sizing: border-box;
 
-button.cancel-button {
-  background-color: #dc3545;
-  color: #fff;
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-left: 10px;
+      .form-control {
+        width: 100%;
+        padding: 12px 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        outline: none;
+        box-sizing: border-box;
+
+        &:focus {
+          border-color: #333;
+        }
+
+        &:focus + .form-label,
+        &:not(:placeholder-shown) + .form-label {
+          transform: translateY(-18px);
+          font-size: 12px;
+          color: #333;
+          background-color: white;
+          padding: 0 4px;
+          border-radius: 4px;
+        }
+      }
+
+      .form-label {
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        font-size: 16px;
+        color: #aaa;
+        pointer-events: none;
+        transition: all 0.2s ease-out;
+      }
+    }
+  }
+
+  button.add-button {
+    border: 2px solid #639e73;
+    color: #5cb176;
+    background: transparent;
+    padding: 0.75rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
 }
 </style>

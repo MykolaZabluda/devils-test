@@ -23,6 +23,6 @@ export default defineComponent({
   align-items: center;
   width: 100%;
   height: 100vh;
-  background: #42b983;
+  background: #f5f6ff;
 }
 </style>

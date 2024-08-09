@@ -1,18 +1,22 @@
 <template>
   <div v-if="visible" class="modal-overlay">
     <div class="modal-content">
-      <h2>{{ user ? 'Edit User' : 'Add User' }}</h2>
+      <div class="modal-content-header">
+        <h2>{{ user ? 'Edit User' : 'Add User' }}</h2>
+        <button class="close-button" @click="$emit('close')">&times;</button>
+      </div>
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
-          <label for="username">Username</label>
-          <input type="text" id="username" v-model="form.username" required />
+          <input type="text" id="username" class="form-control" placeholder="" v-model="form.username" required>
+          <label for="username" class="form-label">Username</label>
         </div>
+
         <div class="form-group">
-          <label for="password">Password</label>
-          <input type="password" id="password" v-model="form.password" required />
+          <input type="password" id="password" class="form-control" placeholder="" v-model="form.password" required>
+          <label for="password" class="form-label">Password</label>
         </div>
+
         <div class="form-group">
-          <label for="role">Role</label>
           <select id="role" v-model="form.role" required>
             <option value="user">User</option>
             <option value="admin">Admin</option>
@@ -20,8 +24,6 @@
           </select>
         </div>
         <button type="submit" class="save-button">{{ user ? 'Update User' : 'Add User' }}</button>
-        <button type="button" @click="$emit('close')" class="cancel-button">Cancel</button>
-        <button v-if="user" type="button" @click="handleDelete" class="delete-button">Delete User</button>
       </form>
     </div>
   </div>
@@ -29,6 +31,8 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
+import {LS_USERS, UserRole} from "@/shared/common-constants";
+import {UserPermissions} from "@/shared/common-types";
 
 export default defineComponent({
   name: 'AddUserModal',
@@ -38,50 +42,55 @@ export default defineComponent({
       required: true,
     },
     user: {
-      type: Object as PropType<{ username: string; password: string; role: string }>,
+      type: Object as PropType<UserPermissions>,
       default: null,
     },
   },
   data() {
     return {
       form: {
-        username: this.user ? this.user.username : '',
-        password: this.user ? this.user.password : '',
-        role: this.user ? this.user.role : 'user',
+        username: this.user?.username || '',
+        password: this.user?.password || '',
+        role: this.user?.role || UserRole.user,
       },
     };
   },
   watch: {
-    user(newUser) {
+    user(newUser): void {
       if (newUser) {
-        this.form.username = newUser.username;
-        this.form.password = newUser.password;
-        this.form.role = newUser.role;
+        const { username, password, role } = newUser;
+        this.form.username = username;
+        this.form.password = password;
+        this.form.role = role;
       } else {
         this.form.username = '';
         this.form.password = '';
-        this.form.role = 'user';
+        this.form.role = UserRole.user;
       }
     },
   },
   methods: {
-    handleSubmit() {
+    handleSubmit(): void {
+      let users = JSON.parse(localStorage.getItem(LS_USERS) || JSON.stringify([]));
+
       if (this.user) {
+        users = users.map((permission: UserPermissions) => {
+          return permission.username === this.user.username ? {...this.form} : permission;
+        });
         this.$emit('update-user', { ...this.form });
       } else {
+        users.push({ ...this.form });
         this.$emit('add-user', { ...this.form });
       }
+
+      localStorage.setItem(LS_USERS, JSON.stringify(users));
       this.$emit('close');
-    },
-    handleDelete() {
-      this.$emit('delete-user', this.form.username);
-      this.$emit('close');
-    },
+    }
   },
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -93,48 +102,92 @@ export default defineComponent({
   align-items: center;
   justify-content: center;
   z-index: 1000;
-}
 
-.modal-content {
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  width: 400px;
-  max-width: 90%;
-}
+  .modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 400px;
+    position: relative;
 
-.form-group {
-  margin-bottom: 1rem;
-}
+    &-header {
+      display: flex;
+      justify-content: space-between;
+      padding-bottom: 15px;
 
-.save-button, .cancel-button, .delete-button {
-  margin-right: 1rem;
-}
+      .close-button {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        border: none;
+        font-size: 32px;
+        cursor: pointer;
+        color: #000;
+        font-weight: bold;
+        background: transparent;
+      }
+    }
 
-.save-button {
-  background-color: #007bff;
-  color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
+    .form-group {
+      position: relative;
+      margin-bottom: 20px;
 
-.cancel-button {
-  background-color: #6c757d;
-  color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
+      .form-control {
+        width: 100%;
+        padding: 12px 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        outline: none;
+        box-sizing: border-box;
 
-.delete-button {
-  background-color: #dc3545;
-  color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+        &:focus {
+          border-color: #333;
+        }
+
+        &:focus + .form-label,
+        &:not(:placeholder-shown) + .form-label {
+          transform: translateY(-18px);
+          font-size: 12px;
+          color: #333;
+          background-color: white;
+          padding: 0 4px;
+          border-radius: 4px;
+        }
+      }
+
+      .form-label {
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        font-size: 16px;
+        color: #aaa;
+        pointer-events: none;
+        transition: all 0.2s ease-out;
+      }
+
+      select {
+        width: 100%;
+        padding: 12px 10px;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+      }
+    }
+
+    .save-button {
+      margin-right: 1rem;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      border: 2px solid #5d5fef;
+      color: #5d5fef;
+      background: transparent;
+      box-sizing: border-box;
+    }
+  }
 }
 </style>
